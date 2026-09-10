@@ -176,7 +176,7 @@ def call_specialist(pertanyaan: str, chunks: list[str]) -> tuple[str, dict]:
     # Jika chunk adalah hasil deterministic calc, langsung return tanpa LLM
     if len(chunks) == 1 and not chunks[0].startswith("Dokumen"):
         # Ini hasil deterministic calc
-        return chunks[0], {"role": "specialist", "input_tokens": 0, "output_tokens": 0}
+        return chunks[0], {"role": "specialist", "input_tokens": 0, "output_tokens": 0, "sources": None}
 
     context = "\n\n---\n\n".join(f"[Konteks {i+1}] {c}" for i, c in enumerate(chunks))
     system_prompt = SPECIALIST_SYSTEM_TEMPLATE.format(context=context)
@@ -205,6 +205,7 @@ def call_specialist(pertanyaan: str, chunks: list[str]) -> tuple[str, dict]:
         "role": "specialist",
         "input_tokens": usage.prompt_tokens,
         "output_tokens": usage.completion_tokens,
+        "sources": chunks
     }
     return content, log
 

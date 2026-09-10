@@ -46,20 +46,26 @@ def save_agent_message(
     agent_role: str,
     input_tokens: int,
     output_tokens: int,
+    sources: list[str] = None
 ) -> str:
     sb = get_supabase()
     total = input_tokens + output_tokens
+    
+    data = {
+        "conversation_id": conv_id,
+        "role": "assistant",
+        "content": answer,
+        "agent_role": agent_role,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total,
+    }
+    if sources:
+        data["sources"] = sources
+        
     res = (
         sb.table("messages")
-        .insert({
-            "conversation_id": conv_id,
-            "role": "assistant",
-            "content": answer,
-            "agent_role": agent_role,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "total_tokens": total,
-        })
+        .insert(data)
         .execute()
     )
     return res.data[0]["id"]
@@ -72,6 +78,17 @@ def get_history(conv_id: str) -> list[dict]:
         .select("*")
         .eq("conversation_id", conv_id)
         .order("created_at")
+        .execute()
+    )
+    return res.data
+
+
+def get_conversations() -> list[dict]:
+    sb = get_supabase()
+    res = (
+        sb.table("conversations")
+        .select("*")
+        .order("created_at", desc=True)
         .execute()
     )
     return res.data

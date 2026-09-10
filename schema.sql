@@ -1,5 +1,5 @@
 -- ============================================================
--- Supabase SQL Schema — BrandnPurpose HR Chat
+-- Supabase SQL Schema — tes HR HR Chat
 -- Jalankan di: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================
 
@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS messages (
   agent_role      TEXT        CHECK (agent_role IN ('manager', 'specialist')),
   input_tokens    INT,
   output_tokens   INT,
-  total_tokens    INT
+  total_tokens    INT,
+  sources         JSONB       -- menyimpan array dari teks referensi RAG
 );
 
 -- Index untuk query history cepat
@@ -35,10 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_conv_id ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 
 -- ─────────────────────────────────────
--- Row Level Security (RLS) — opsional
--- Aktifkan jika ingin isolasi per user
+-- Row Level Security (RLS)
+-- Kita matikan RLS agar Anon Key bisa melakukan INSERT tanpa ditolak (Error 42501)
 -- ─────────────────────────────────────
--- ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "public access" ON conversations FOR ALL USING (true);
--- CREATE POLICY "public access" ON messages FOR ALL USING (true);
+ALTER TABLE conversations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE messages DISABLE ROW LEVEL SECURITY;

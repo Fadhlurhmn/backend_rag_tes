@@ -19,6 +19,7 @@ from database import (
     save_user_message,
     save_agent_message,
     get_history,
+    get_conversations,
 )
 
 
@@ -29,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="BrandnPurpose HR Chat API",
+    title="tes HR HR Chat API",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -56,7 +57,7 @@ app.add_middleware(
 # ─────────────────────────────────────────
 @app.get("/")
 def root():
-    return {"status": "ok", "service": "BrandnPurpose HR Chat API"}
+    return {"status": "ok", "service": "tes HR HR Chat API"}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -86,10 +87,12 @@ async def chat(req: ChatRequest):
     output_tokens = log["output_tokens"]
     total_tokens = input_tokens + output_tokens
 
+    sources = log.get("sources")
+
     # Simpan jawaban agent
     try:
         msg_id = save_agent_message(
-            conv_id, answer, agent_role, input_tokens, output_tokens
+            conv_id, answer, agent_role, input_tokens, output_tokens, sources
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"DB save agent error: {e}")
@@ -102,6 +105,7 @@ async def chat(req: ChatRequest):
         total_tokens=total_tokens,
         conversation_id=conv_id,
         message_id=msg_id,
+        sources=sources,
     )
 
 
@@ -122,7 +126,17 @@ async def history(conversation_id: str):
             output_tokens=r.get("output_tokens"),
             total_tokens=r.get("total_tokens"),
             created_at=str(r["created_at"]),
+            sources=r.get("sources"),
         )
         for r in rows
     ]
     return HistoryResponse(conversation_id=conversation_id, messages=messages)
+
+
+@app.get("/conversations")
+async def conversations():
+    try:
+        rows = get_conversations()
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {e}")

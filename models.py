@@ -16,6 +16,7 @@ class ChatResponse(BaseModel):
     total_tokens: int
     conversation_id: str
     message_id: str
+    sources: Optional[list[str]] = None
 
 
 class HistoryMessage(BaseModel):
@@ -27,6 +28,7 @@ class HistoryMessage(BaseModel):
     output_tokens: Optional[int]
     total_tokens: Optional[int]
     created_at: str
+    sources: Optional[list[str]] = None
 
 
 class HistoryResponse(BaseModel):
